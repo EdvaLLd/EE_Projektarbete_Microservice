@@ -5,13 +5,10 @@
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="gradleHome" value="" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/auth-service" />
-            <option value="$PROJECT_DIR$/jwt-common" />
-            <option value="$PROJECT_DIR$/task-service" />
-            <option value="$PROJECT_DIR$/user-roles" />
           </set>
         </option>
       </GradleProjectSettings>

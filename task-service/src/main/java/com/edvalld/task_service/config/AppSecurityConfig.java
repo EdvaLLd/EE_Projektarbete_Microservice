@@ -1,6 +1,6 @@
-package com.edvalld.auth_service.config;
+package com.edvalld.task_service.config;
 
-import com.edvalld.role.*;
+import com.edvalld.role.UserRole;
 import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -14,8 +14,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import java.util.concurrent.TimeUnit;
 
 @Configuration
 @EnableWebSecurity
@@ -41,12 +39,8 @@ public class AppSecurityConfig {
         httpSecurity
                 .csrf(csrfConfigurer -> csrfConfigurer.disable())   // TODO - JWT, best practice?
                 .authorizeHttpRequests( auth -> auth
-                        // .requestMatchers() // TODO - check against specific HTTP METHOD
-                        .requestMatchers("/", "/auth/register", "/static/**", "/auth/login").permitAll()  // Allow localhost:8080/
-                        .requestMatchers("/debug/**").permitAll()                     // RestController for Debugging
-                        .requestMatchers("/admin", "/tools", "/auth/remove").hasRole(UserRole.ADMIN.name())
                         .requestMatchers("/auth/me").authenticated()
-                        .requestMatchers("/user", "/tasks").hasRole(UserRole.USER.name())
+                        .requestMatchers("/task", "/tasks").hasRole(UserRole.USER.name())
                         .anyRequest().authenticated() // MUST exist AFTER matchers, TODO - Is this true by DEFAULT?
                 )
                 .logout(logout -> logout

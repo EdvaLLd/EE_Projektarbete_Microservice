@@ -1,6 +1,6 @@
 package com.edvalld.auth_service.validator;
 
-import com.edvalld.auth_service.user.role.UserRole;
+import com.edvalld.role.UserRole;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import java.util.Set;

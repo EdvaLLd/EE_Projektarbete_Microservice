@@ -1,6 +1,6 @@
 package com.edvalld.auth_service.user;
 
-import com.edvalld.auth_service.user.role.UserRole;
+import com.edvalld.role.UserRole;
 import jakarta.persistence.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 

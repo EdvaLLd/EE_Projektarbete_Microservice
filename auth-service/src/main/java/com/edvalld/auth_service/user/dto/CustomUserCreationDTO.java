@@ -1,7 +1,7 @@
 package com.edvalld.auth_service.user.dto;
 
-import com.edvalld.auth_service.user.role.UserRole;
 import com.edvalld.auth_service.validator.ValidRoles;
+import com.edvalld.role.UserRole;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;

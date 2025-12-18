@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -116,10 +117,23 @@ public class GlobalController {
                 ));
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(HttpServletResponse response){
+        Cookie cookie = new Cookie("authToken", null);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        cookie.setHttpOnly(true);
+        response.addCookie(cookie);
+
+        SecurityContextHolder.clearContext();
+
+        return ResponseEntity.ok("Logged out successfully");
+    }
+
 
     //login och register fungerar atm
 
-    @DeleteMapping("/user")
+    @DeleteMapping("/remove")
     public ResponseEntity<String> deleteUser(@RequestParam UUID userId){
         if(customUserRepository.findById(userId).isPresent()) {
             customUserRepository.deleteById(userId);

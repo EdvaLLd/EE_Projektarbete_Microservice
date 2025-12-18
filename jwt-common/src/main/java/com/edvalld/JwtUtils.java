@@ -59,6 +59,29 @@ public class JwtUtils {
         }
     }
 
+    public List<String> getRolesFromJwtToken (String token, String keyValue) {
+
+        Claims claims = Jwts.parser()
+                .verifyWith (generateKey(keyValue))
+                .build()
+                .parseSignedClaims (token)
+                .getPayload();
+
+        Object rolesClaim = claims.get("roles");
+
+        if (rolesClaim == null) {
+            return List.of();
+        }
+
+        if (rolesClaim instanceof List<?> rolesList) {
+            return rolesList.stream()
+                    .map(Object::toString)
+                    .toList();
+        }
+
+        throw new IllegalStateException("Invalid roles claim in JWT");
+    }
+
     public boolean validateJwtToken (String authToken, String keyValue) {
         try {
             Jwts.parser()

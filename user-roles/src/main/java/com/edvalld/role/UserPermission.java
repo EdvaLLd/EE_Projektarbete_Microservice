@@ -1,4 +1,4 @@
-package com.edvalld.auth_service.user.role;
+package com.edvalld.role;
 
 public enum UserPermission {
     READ("READ"),

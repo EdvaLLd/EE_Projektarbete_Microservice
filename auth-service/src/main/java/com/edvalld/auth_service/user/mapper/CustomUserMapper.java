@@ -3,7 +3,7 @@ package com.edvalld.auth_service.user.mapper;
 import com.edvalld.auth_service.user.CustomUser;
 import com.edvalld.auth_service.user.dto.CustomUserCreationDTO;
 import com.edvalld.auth_service.user.dto.RegisterUserDTO;
-import com.edvalld.auth_service.user.role.UserRole;
+import com.edvalld.role.UserRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
