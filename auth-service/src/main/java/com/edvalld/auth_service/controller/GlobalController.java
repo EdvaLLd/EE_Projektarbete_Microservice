@@ -1,7 +1,6 @@
 package com.edvalld.auth_service.controller;
 
 import com.edvalld.JwtUtils;
-import com.edvalld.auth_service.config.JwtAuthenticationFilter;
 import com.edvalld.auth_service.user.CustomUser;
 import com.edvalld.auth_service.user.CustomUserDetails;
 import com.edvalld.auth_service.user.CustomUserDetailsService;
@@ -10,6 +9,8 @@ import com.edvalld.auth_service.user.dto.CustomUserResponseDTO;
 import com.edvalld.auth_service.user.dto.LoginDTO;
 import com.edvalld.auth_service.user.dto.RegisterUserDTO;
 import com.edvalld.auth_service.user.mapper.CustomUserMapper;
+import com.edvalld.role.UserRole;
+import com.edvalld.role.UserRoleName;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -36,7 +37,6 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/auth")
 public class GlobalController {
-    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     // TODO - Replace with Service in the future
     private final CustomUserRepository customUserRepository;
     private final PasswordEncoder passwordEncoder;
@@ -44,6 +44,7 @@ public class GlobalController {
     private final AuthenticationManager authenticationManager;
     private final String keyValue;
     private final CustomUserDetailsService customUserDetailsService;
+    private final JwtUtils jwtUtils;
 
     @Autowired
     public GlobalController(
@@ -60,6 +61,7 @@ public class GlobalController {
         this.authenticationManager = authenticationManager;
         keyValue = base64EncodedSecretKey;
         this.customUserDetailsService = customUserDetailsService;
+        this.jwtUtils = JwtUtils.getInstance();
     }
 
     @PostMapping("/login")
@@ -131,10 +133,21 @@ public class GlobalController {
     }
 
 
-    //login och register fungerar atm
 
     @DeleteMapping("/remove")
-    public ResponseEntity<String> deleteUser(@RequestParam UUID userId){
+    public ResponseEntity<String> deleteUser(
+            @RequestParam UUID userId,
+            @CookieValue(name = "authToken", required = false) String token
+    ){
+        if (token == null || !jwtUtils.validateJwtToken(token, keyValue)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        List<String> roles = jwtUtils.getRolesFromJwtToken(token, keyValue);
+        if (!roles.contains(UserRole.ADMIN.name())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         if(customUserRepository.findById(userId).isPresent()) {
             customUserRepository.deleteById(userId);
             return ResponseEntity.status(200).body("User deleted successfully");
@@ -143,8 +156,15 @@ public class GlobalController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<CustomUserResponseDTO> getCurrentUser(Authentication authentication) {
-        String username = authentication.getName();
+    public ResponseEntity<CustomUserResponseDTO> getCurrentUser(
+            @CookieValue(name = "authToken", required = false) String token
+    ) {
+        if (token == null || !jwtUtils.validateJwtToken(token, keyValue)) {
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String username = jwtUtils.getUsernameFromJwtToken(token, keyValue);
         UserDetails user = customUserDetailsService.loadUserByUsername(username);
         CustomUserResponseDTO dto = new CustomUserResponseDTO(user.getUsername(),
                 user.getAuthorities()

@@ -20,15 +20,6 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 @EnableWebSecurity
 public class AppSecurityConfig {
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    @Autowired
-    public AppSecurityConfig(
-            UserDetailsService userDetailsService,
-            JwtAuthenticationFilter jwtAuthenticationFilter
-    ) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -42,35 +33,14 @@ public class AppSecurityConfig {
                 .csrf(csrfConfigurer -> csrfConfigurer.disable())   // TODO - JWT, best practice?
                 .authorizeHttpRequests( auth -> auth
                         // .requestMatchers() // TODO - check against specific HTTP METHOD
-                        .requestMatchers("/", "/auth/register", "/static/**", "/auth/login").permitAll()  // Allow localhost:8080/
-                        .requestMatchers("/debug/**").permitAll()                     // RestController for Debugging
-                        .requestMatchers("/admin", "/tools", "/auth/remove").hasRole(UserRole.ADMIN.name())
-                        .requestMatchers("/auth/me").authenticated()
-                        .requestMatchers("/user", "/tasks").hasRole(UserRole.USER.name())
-                        .anyRequest().authenticated() // MUST exist AFTER matchers, TODO - Is this true by DEFAULT?
-                )
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessHandler((request, response, authentication) -> {
-                            Cookie cookie = new Cookie("authToken", null);
-                            cookie.setPath("/");
-                            cookie.setMaxAge(0);
-                            cookie.setHttpOnly(true);
-                            response.addCookie(cookie);
-
-                            SecurityContextHolder.clearContext();
-
-                            response.sendRedirect("/login?logout");
-                        })
+                        .anyRequest().permitAll() // MUST exist AFTER matchers, TODO - Is this true by DEFAULT?
                 )
 
                 // TODO - If you want (optional), insert configure logic here for CORS
 
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                );
 
         return httpSecurity.build();
     }

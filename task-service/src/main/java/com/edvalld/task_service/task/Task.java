@@ -16,22 +16,22 @@ public class Task {
 
     private String task;
 
-    private String user;
+    private String userId;
 
     public Task(){}
-    public Task(UUID id, String title, String task, String user) {
+    public Task(UUID id, String title, String task, String userId) {
         this.id = id;
         this.title = title;
         this.task = task;
-        this.user = user;
+        this.userId = userId;
     }
 
     public String getUser() {
-        return user;
+        return userId;
     }
 
     public void setUser(String user) {
-        this.user = user;
+        this.userId = user;
     }
 
     public UUID getId() {

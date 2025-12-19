@@ -11,7 +11,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -22,7 +21,6 @@ public class AppSecurityConfig {
 
     @Autowired
     public AppSecurityConfig(
-            UserDetailsService userDetailsService,
             JwtAuthenticationFilter jwtAuthenticationFilter
     ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
@@ -39,23 +37,7 @@ public class AppSecurityConfig {
         httpSecurity
                 .csrf(csrfConfigurer -> csrfConfigurer.disable())   // TODO - JWT, best practice?
                 .authorizeHttpRequests( auth -> auth
-                        .requestMatchers("/auth/me").authenticated()
-                        .requestMatchers("/task", "/tasks").hasRole(UserRole.USER.name())
-                        .anyRequest().authenticated() // MUST exist AFTER matchers, TODO - Is this true by DEFAULT?
-                )
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessHandler((request, response, authentication) -> {
-                            Cookie cookie = new Cookie("authToken", null);
-                            cookie.setPath("/");
-                            cookie.setMaxAge(0);
-                            cookie.setHttpOnly(true);
-                            response.addCookie(cookie);
-
-                            SecurityContextHolder.clearContext();
-
-                            response.sendRedirect("/login?logout");
-                        })
+                        .anyRequest().hasRole(UserRole.USER.name()) // MUST exist AFTER matchers, TODO - Is this true by DEFAULT?
                 )
 
                 // TODO - If you want (optional), insert configure logic here for CORS
