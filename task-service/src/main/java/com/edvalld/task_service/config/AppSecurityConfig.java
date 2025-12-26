@@ -38,6 +38,7 @@ public class AppSecurityConfig {
                 .csrf(csrfConfigurer -> csrfConfigurer.disable())   // TODO - JWT, best practice?
                 .authorizeHttpRequests( auth -> auth
                         .anyRequest().hasRole(UserRole.USER.name()) // MUST exist AFTER matchers, TODO - Is this true by DEFAULT?
+                        //.anyRequest().permitAll()
                 )
 
                 // TODO - If you want (optional), insert configure logic here for CORS

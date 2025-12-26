@@ -18,13 +18,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.GrantedAuthority;
@@ -65,35 +68,47 @@ public class GlobalController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginDTO loginDTO, HttpServletResponse response) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginDTO.username(),
-                        loginDTO.password()
-                )
-        );
-        CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO, HttpServletResponse response) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginDTO.username(),
+                            loginDTO.password()
+                    )
+            );
+            CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
 
-        if(user == null) {
-            return ResponseEntity.status(401).build();
+            if (user == null) {
+                return ResponseEntity.status(401).build();
+            }
+
+            List<String> authorities = user.getAuthorities().stream().map(Object::toString).toList();
+
+            String jwt = JwtUtils.getInstance().generateJwtToken(
+                    authorities,
+                    user.getUsername(),
+                    keyValue
+
+            );
+
+            // Skicka JWT i header
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt)
+                    .body(Map.of(
+                            "username", user.getUsername(),
+                            "roles", user.getAuthorities()
+                                    .stream()
+                                    .map(GrantedAuthority::getAuthority)
+                                    .collect(Collectors.toList())
+                    ));
+
+        } catch (
+                UsernameNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found");
         }
-
-        List<String> authorities = user.getAuthorities().stream().map(Object::toString).toList();
-
-        String jwt = JwtUtils.getInstance().generateJwtToken(
-                authorities,
-                user.getUsername(),
-                keyValue
-
-        );
-
-        Cookie cookie = new Cookie("authToken", jwt);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(24 * 60 * 60);
-        response.addCookie(cookie);
-
-        return ResponseEntity.ok("Cookie generated and added to response");
+          catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+        }
     }
 
     @PostMapping("/register")
@@ -137,11 +152,14 @@ public class GlobalController {
     @DeleteMapping("/remove")
     public ResponseEntity<String> deleteUser(
             @RequestParam UUID userId,
-            @CookieValue(name = "authToken", required = false) String token
+            @RequestHeader(name = "Authorization", required = false) String authHeader
     ){
-        if (token == null || !jwtUtils.validateJwtToken(token, keyValue)) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
+        String token = authHeader.substring(7);
 
         List<String> roles = jwtUtils.getRolesFromJwtToken(token, keyValue);
         if (!roles.contains(UserRole.ADMIN.name())) {
@@ -157,12 +175,14 @@ public class GlobalController {
 
     @GetMapping("/me")
     public ResponseEntity<CustomUserResponseDTO> getCurrentUser(
-            @CookieValue(name = "authToken", required = false) String token
+            @RequestHeader(name = "Authorization", required = false) String authHeader
     ) {
-        if (token == null || !jwtUtils.validateJwtToken(token, keyValue)) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
+        String token = authHeader.substring(7);
 
         String username = jwtUtils.getUsernameFromJwtToken(token, keyValue);
         UserDetails user = customUserDetailsService.loadUserByUsername(username);

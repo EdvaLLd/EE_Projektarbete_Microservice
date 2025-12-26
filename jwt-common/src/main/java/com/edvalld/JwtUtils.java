@@ -67,7 +67,7 @@ public class JwtUtils {
                 .parseSignedClaims (token)
                 .getPayload();
 
-        Object rolesClaim = claims.get("roles");
+        Object rolesClaim = claims.get("authorities");
 
         if (rolesClaim == null) {
             return List.of();
