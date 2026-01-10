@@ -21,7 +21,7 @@ public class TaskService {
         List<TaskDTO> tasks = new ArrayList<>();
         for (Task task : taskRepository.findAll()) {
             if(task.getUser().equals(username)){
-                tasks.add(new TaskDTO(task.getTitle(), task.getTask()));
+                tasks.add(new TaskDTO(task.getId(), task.getTitle(), task.getTask()));
             }
         }
         return tasks;

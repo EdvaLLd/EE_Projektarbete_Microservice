@@ -91,16 +91,15 @@ public class GlobalController {
 
             );
 
-            // Skicka JWT i header
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt)
-                    .body(Map.of(
+            Map<String, Object> responseBody = Map.of(
+                    "token", "Bearer " + jwt,
+                    "user", Map.of(
                             "username", user.getUsername(),
-                            "roles", user.getAuthorities()
-                                    .stream()
-                                    .map(GrantedAuthority::getAuthority)
-                                    .collect(Collectors.toList())
-                    ));
+                            "roles", authorities
+                    )
+            );
+            return ResponseEntity.ok(responseBody);
+
 
         } catch (
                 UsernameNotFoundException e) {
@@ -151,9 +150,10 @@ public class GlobalController {
 
     @DeleteMapping("/remove")
     public ResponseEntity<String> deleteUser(
-            @RequestParam UUID userId,
+            @RequestParam String username,
             @RequestHeader(name = "Authorization", required = false) String authHeader
     ){
+        System.out.println("removing user " + username);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -162,12 +162,13 @@ public class GlobalController {
         String token = authHeader.substring(7);
 
         List<String> roles = jwtUtils.getRolesFromJwtToken(token, keyValue);
-        if (!roles.contains(UserRole.ADMIN.name())) {
+        if (!roles.contains(UserRoleName.ADMIN.getRoleName())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        if(customUserRepository.findById(userId).isPresent()) {
-            customUserRepository.deleteById(userId);
+        if(customUserRepository.findUserByUsername(username).isPresent()) {
+            customUserRepository.deleteUserByUsername(username);
+            System.out.println("success");
             return ResponseEntity.status(200).body("User deleted successfully");
         }
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body("User not found");
@@ -192,6 +193,12 @@ public class GlobalController {
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.toList()));
         return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/getAllUsers")
+    public ResponseEntity<List<CustomUserResponseDTO>> getCurrentUser() {
+
+        return ResponseEntity.ok(customUserDetailsService.getAllUsers());
     }
 
 

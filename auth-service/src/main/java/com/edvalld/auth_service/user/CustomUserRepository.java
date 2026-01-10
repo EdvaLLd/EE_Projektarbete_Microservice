@@ -1,5 +1,6 @@
 package com.edvalld.auth_service.user;
 
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
@@ -10,5 +11,7 @@ public interface CustomUserRepository extends JpaRepository<CustomUser, UUID> {
 
     // Method will be called within UserDetailsService
     Optional<CustomUser> findUserByUsername(String username);
+    @Transactional
+    void deleteUserByUsername(String username);
 
 }

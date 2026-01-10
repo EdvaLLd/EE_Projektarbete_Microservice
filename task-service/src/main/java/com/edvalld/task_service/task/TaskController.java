@@ -27,13 +27,11 @@ public class TaskController {
         return ResponseEntity.ok(taskService.getTasksForUser(username));
     }
     @GetMapping
-    public ResponseEntity<Task> getTaskById(Authentication authentication, UUID taskId) {
-        String username = authentication.getName();
+    public ResponseEntity<Task> getTaskById(UUID taskId) {
         if(taskRepository.findById(taskId).isEmpty()) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(taskRepository.findById(taskId).get());
     }
 
-    //denna funkar inte nu
     @PostMapping
     public ResponseEntity<TaskDTO> createTask(
             @RequestBody TaskDTO dto,
