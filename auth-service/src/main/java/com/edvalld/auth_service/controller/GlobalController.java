@@ -34,13 +34,11 @@ import org.springframework.security.core.GrantedAuthority;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/auth")
 public class GlobalController {
-    // TODO - Replace with Service in the future
     private final CustomUserRepository customUserRepository;
     private final PasswordEncoder passwordEncoder;
     private final CustomUserMapper customUserMapper;
@@ -78,9 +76,6 @@ public class GlobalController {
             );
             CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
 
-            if (user == null) {
-                return ResponseEntity.status(401).build();
-            }
 
             List<String> authorities = user.getAuthorities().stream().map(Object::toString).toList();
 
@@ -153,7 +148,6 @@ public class GlobalController {
             @RequestParam String username,
             @RequestHeader(name = "Authorization", required = false) String authHeader
     ){
-        System.out.println("removing user " + username);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -165,10 +159,8 @@ public class GlobalController {
         if (!roles.contains(UserRoleName.ADMIN.getRoleName())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-
         if(customUserRepository.findUserByUsername(username).isPresent()) {
             customUserRepository.deleteUserByUsername(username);
-            System.out.println("success");
             return ResponseEntity.status(200).body("User deleted successfully");
         }
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body("User not found");
@@ -200,33 +192,4 @@ public class GlobalController {
 
         return ResponseEntity.ok(customUserDetailsService.getAllUsers());
     }
-
-
-
-    /*
-
-    @GetMapping("/admin")
-    public String adminPage(Model model, Principal principal) {
-        //skickar in alla användare förutom den som är inloggad
-        model.addAttribute("users", customUserRepository.findAll()
-                .stream()
-                .filter(user -> !user.getId().equals(customUserRepository.findUserByUsername(principal.getName()).get().getId()))
-                .toList());
-        return "adminpage"; // Must Reflect .html document name
-    }
-
-    @GetMapping("/user")
-    public String userPage() {
-
-        return "userpage";
-    }
-
-    @DeleteMapping("/removeUser")
-    public String removeUser(@RequestParam UUID userId) {
-        customUserRepository.deleteById(userId);
-        return "redirect:/admin";
-    }
-
-
-    */
 }

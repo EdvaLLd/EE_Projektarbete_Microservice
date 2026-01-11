@@ -22,18 +22,16 @@ public class CustomUserDetails implements UserDetails {
 
         customUser.getRoles().forEach(
 
-                userRole -> authorities.addAll(getUserAuthorities(userRole)) // Merge arrays
+                userRole -> authorities.addAll(getUserAuthorities(userRole))
         );
 
-        return Collections.unmodifiableSet(authorities); // Make List 'final' through 'unmodifiable'
+        return Collections.unmodifiableSet(authorities);
     }
 
-    // Get a LIST that Spring understands - containing both ROLE + PERMISSION
     public List<SimpleGrantedAuthority> getUserAuthorities(UserRole userRole) {
 
         List<SimpleGrantedAuthority> authorityList = new ArrayList<>();
 
-        // this == the choice made after UserRole. (e.g: UserRole.ADMIN)
         authorityList.add(new SimpleGrantedAuthority(userRole.getRoleName()));
         authorityList.addAll(
                 userRole.getUserPermissions().stream().map(

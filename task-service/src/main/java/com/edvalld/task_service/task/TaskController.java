@@ -26,8 +26,8 @@ public class TaskController {
         String username = authentication.getName();
         return ResponseEntity.ok(taskService.getTasksForUser(username));
     }
-    @GetMapping
-    public ResponseEntity<Task> getTaskById(UUID taskId) {
+    @GetMapping("/getById/{taskId}")
+    public ResponseEntity<Task> getTaskById(@PathVariable UUID taskId) {
         if(taskRepository.findById(taskId).isEmpty()) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(taskRepository.findById(taskId).get());
     }
@@ -49,5 +49,12 @@ public class TaskController {
             return ResponseEntity.status(200).body("Deleted task");
         }
         return ResponseEntity.status(404).body("Task not found");
+    }
+    @DeleteMapping("/all/{username}")
+    public ResponseEntity<String> deleteTasks(@PathVariable String username) {
+        if(taskService.deleteAllTasksFromUser(username)){
+            return ResponseEntity.status(200).body("Deleted all tasks successfully");
+        }
+        return ResponseEntity.status(404).body("Deleting tasks failed");
     }
 }

@@ -46,4 +46,15 @@ public class TaskService {
         }
         return false;
     }
+
+    public boolean deleteAllTasksFromUser(String user){
+        List<Task> tasks = taskRepository.findAll();
+
+        for(Task task : tasks){
+            if(task.getUser().equals(user)){
+                taskRepository.deleteById(task.getId());
+            }
+        }
+        return true;
+    }
 }
