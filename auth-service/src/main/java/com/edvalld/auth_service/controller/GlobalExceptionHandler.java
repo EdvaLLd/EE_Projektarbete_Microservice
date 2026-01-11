@@ -7,13 +7,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
@@ -36,7 +36,7 @@ public class GlobalExceptionHandler {
 
         Map<String, String> error = new HashMap<>();
         error.put("auth", ex.getMessage());
-
+        System.out.println("uhoh!!!");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 

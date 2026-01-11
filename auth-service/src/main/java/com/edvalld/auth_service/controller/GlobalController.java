@@ -67,42 +67,32 @@ public class GlobalController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO, HttpServletResponse response) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginDTO.username(),
-                            loginDTO.password()
-                    )
-            );
-            CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginDTO.username(),
+                        loginDTO.password()
+                )
+        );
+        CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
 
 
-            List<String> authorities = user.getAuthorities().stream().map(Object::toString).toList();
+        List<String> authorities = user.getAuthorities().stream().map(Object::toString).toList();
 
-            String jwt = JwtUtils.getInstance().generateJwtToken(
-                    authorities,
-                    user.getUsername(),
-                    keyValue
+        String jwt = JwtUtils.getInstance().generateJwtToken(
+                authorities,
+                user.getUsername(),
+                keyValue
 
-            );
+        );
 
-            Map<String, Object> responseBody = Map.of(
-                    "token", "Bearer " + jwt,
-                    "user", Map.of(
-                            "username", user.getUsername(),
-                            "roles", authorities
-                    )
-            );
-            return ResponseEntity.ok(responseBody);
-
-
-        } catch (
-                UsernameNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found");
-        }
-          catch (AuthenticationException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
-        }
+        Map<String, Object> responseBody = Map.of(
+                "token", "Bearer " + jwt,
+                "user", Map.of(
+                        "username", user.getUsername(),
+                        "roles", authorities
+                )
+        );
+        return ResponseEntity.ok(responseBody);
     }
 
     @PostMapping("/register")
